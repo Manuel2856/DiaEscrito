@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">DiaEscrito</string>
+    <string name="calendario">Calendario</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+    <string name="selecciona_la_fecha">Selecciona la fecha para añadir una nueva entrada</string>
+    <string name="nueva_entrada">Nueva entrada</string>
+    <string name="guardar">Guardar</string>
+</resources>
