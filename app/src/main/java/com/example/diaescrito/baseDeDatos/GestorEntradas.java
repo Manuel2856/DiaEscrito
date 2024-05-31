@@ -12,6 +12,7 @@ import com.example.diaescrito.entidades.Entrada;
 import com.example.diaescrito.entidades.Usuario;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class GestorEntradas extends AppCompatActivity {
@@ -39,9 +40,8 @@ public class GestorEntradas extends AppCompatActivity {
         initializeDatabase();
         SQLiteStatement statement = null;
         if (db != null) {
-            statement = db.compileStatement("INSERT INTO Entradas (IdEntrada,Titulo, Contenido,Fecha) VALUES (?, ?, ?,?);");
+            statement = db.compileStatement("INSERT INTO Entradas (IdUsuario,Titulo, Contenido,Fecha) VALUES (?, ?, ?,?);");
 
-            // Resto del código...
         } else {
             Log.e("GestorBaseDeDatos", "La base de datos es nula. Asegúrate de inicializarla correctamente.");
         }
@@ -50,10 +50,10 @@ public class GestorEntradas extends AppCompatActivity {
         String contenido = entrada.getContenido();
         String fecha = entrada.getFecha();
 
-        statement.bindString(1,idUsuario);
+        statement.bindString(1, idUsuario);
         statement.bindString(2, titulo);
         statement.bindString(3, contenido);
-        statement.bindString(4, fecha);
+        statement.bindString(4, String.valueOf(fecha));
 
         statement.executeInsert();
     }
@@ -69,7 +69,8 @@ public class GestorEntradas extends AppCompatActivity {
                 String titulo = cursor.getString(cursor.getColumnIndexOrThrow("Titulo"));
                 String contenido = cursor.getString(cursor.getColumnIndexOrThrow("Contenido"));
                 String fecha = cursor.getString(cursor.getColumnIndexOrThrow("Fecha"));
-                Entrada entrada = new Entrada(titulo,contenido,fecha,usuario);
+                //TODO
+                Entrada entrada = new Entrada(titulo,contenido,fecha,usuario,0);
                 listaEntradas.add(entrada);
             }
         } catch (Exception e) {

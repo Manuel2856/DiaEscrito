@@ -38,9 +38,8 @@ public class InicioFragment extends Fragment {
             public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth) {
                 String fechaSeleccionada = dayOfMonth + "/" + (month + 1) + "/" + year;
                 Intent intent = new Intent(getActivity(), EditarDia.class);
-                intent.putExtra("year", year);
-                intent.putExtra("month", month);
-                intent.putExtra("day", dayOfMonth);
+                intent.putExtra("date", calendario.getDate());
+                System.out.println(calendario.getDate());
                 startActivity(intent);
             }
         });

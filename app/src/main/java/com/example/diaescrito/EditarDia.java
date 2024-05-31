@@ -1,19 +1,54 @@
 package com.example.diaescrito;
 
-
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.PopupMenu;
+import android.widget.RelativeLayout;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
+
+import com.example.diaescrito.baseDeDatos.GestorEntradas;
 import com.example.diaescrito.databinding.EditarDiaBinding;
+import com.example.diaescrito.entidades.Entrada;
 import com.example.diaescrito.ui.home.InicioFragment;
+
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import com.example.diaescrito.R;
+import android.hardware.Camera;
+
+
 
 public class EditarDia extends AppCompatActivity {
     private EditarDiaBinding binding;
     private ImageView btnVolverAtras;
     private Button btnGuardar;
+    private int contadorTituloEntrada=0, contadorContenidoEntrada=0;
+    private GestorEntradas ge;
+    private static final int PICK_IMAGE = 1;
+    private ImageView imagenUsuario;
+    private Uri photoUri;
+    public static final int MENU_GALLERY_ID = R.id.menu_gallery;
+    public static final int MENU_CAMERA_ID = R.id.menu_camera;
+    private static final int PERMISSIONS_REQUEST_CAMERA = 100;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,15 +58,141 @@ public class EditarDia extends AppCompatActivity {
         setContentView(binding.getRoot());
         btnVolverAtras = binding.btnVolverAtras;
         btnGuardar = binding.btnGuardar;
+        Intent intentEditarDia = getIntent();
+        ge = new GestorEntradas(this);
+        imagenUsuario = binding.imgAddImage;
+
+
 
         btnVolverAtras.setOnClickListener(e->{
-            Intent intent = new Intent(this, InicioFragment.class);
-            startActivity(intent);
+            volverAInicio();
         });
         btnGuardar.setOnClickListener(e->{
-
+            Long date = intentEditarDia.getLongExtra("date",0);
+            Date fecha = new Date(date);
+            String fechaS = fecha.toString();
+            Entrada entradaAGuardar = new Entrada(binding.etxtTituloEntrada.getText().toString(),
+                    binding.etxtContenidoEntrada.getText().toString(),fechaS,MainActivity.getUsuarioApp(),0);
+            ge.insertarEntrada(entradaAGuardar);
+            volverAInicio();
+        });
+        binding.etxtTituloEntrada.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus && contadorTituloEntrada == 0) {
+                binding.etxtTituloEntrada.setText("");
+                contadorTituloEntrada++;
+            }
+        });
+        binding.etxtContenidoEntrada.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus && contadorContenidoEntrada ==0) {
+                binding.etxtContenidoEntrada.setText("");
+                contadorContenidoEntrada++;
+            }
+        });
+        binding.imgAddImage.setOnClickListener(e->{
+            showImageSourceOptions();
         });
 
 
+    }
+    private final ActivityResultLauncher<Intent> imagePickerLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+                    result -> {
+                        if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                            Uri selectedImage = result.getData().getData();
+                            imagenUsuario.setImageURI(selectedImage);
+                            imagenUsuario.getLayoutParams().width = RelativeLayout.LayoutParams.MATCH_PARENT;
+                            imagenUsuario.getLayoutParams().height = RelativeLayout.LayoutParams.WRAP_CONTENT;
+                            imagenUsuario.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                            imagenUsuario.requestLayout();
+                        }
+                    });
+    private final ActivityResultLauncher<Uri> cameraLauncher =
+            registerForActivityResult(new ActivityResultContracts.TakePicture(),
+                    result -> {
+                        if (result) {
+                            imagenUsuario.setImageURI(photoUri);
+                            // Ajustar el tamaño y centrado de la imagen
+                            imagenUsuario.getLayoutParams().width = RelativeLayout.LayoutParams.MATCH_PARENT;
+                            imagenUsuario.getLayoutParams().height = RelativeLayout.LayoutParams.WRAP_CONTENT;
+                            imagenUsuario.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+                            imagenUsuario.requestLayout();
+                        }
+                    });
+
+    private void showImageSourceOptions() {
+        PopupMenu popupMenu = new PopupMenu(this, imagenUsuario);
+        popupMenu.getMenuInflater().inflate(R.menu.menu_image_source, popupMenu.getMenu());
+
+        popupMenu.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == R.id.menu_gallery) {
+                Intent galleryIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                imagePickerLauncher.launch(galleryIntent);
+                return true;
+            } else if (item.getItemId() == R.id.menu_camera) {
+
+                takePhotoWithPermissions();
+                return true;
+            }
+            return false;
+        });
+
+        popupMenu.show();
+    }
+    private void takePhotoWithPermissions() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED
+                || ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            // Si los permisos no están concedidos, solicítalos
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    PERMISSIONS_REQUEST_CAMERA);
+        } else {
+            // Si los permisos están concedidos, toma la foto
+            takePhoto();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSIONS_REQUEST_CAMERA) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permiso concedido, tomar la foto
+                takePhoto();
+            } else {
+                // Permiso denegado, mostrar un mensaje o tomar alguna otra acción
+            }
+        }
+    }
+
+    private void takePhoto() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            try {
+                File photoFile = createImageFile();
+                photoUri = FileProvider.getUriForFile(this, "com.example.diaescrito.fileprovider", photoFile);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
+                cameraLauncher.launch(photoUri);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+    private File createImageFile() throws IOException {
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.UK).format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        return File.createTempFile(imageFileName, ".jpg", storageDir);
+    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == PICK_IMAGE && resultCode == RESULT_OK && data != null) {
+            Uri selectedImage = data.getData();
+            imagenUsuario.setImageURI(selectedImage);
+        }
+    }
+    public void volverAInicio(){
+        Intent intent = new Intent(this, InicioFragment.class);
+        startActivity(intent);
     }
 }
