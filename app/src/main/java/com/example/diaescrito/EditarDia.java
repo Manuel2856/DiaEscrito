@@ -26,13 +26,13 @@ import com.example.diaescrito.databinding.EditarDiaBinding;
 import com.example.diaescrito.entidades.Entrada;
 import com.example.diaescrito.ui.home.InicioFragment;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
-import com.example.diaescrito.R;
-import android.hardware.Camera;
 
 
 
@@ -45,8 +45,6 @@ public class EditarDia extends AppCompatActivity {
     private static final int PICK_IMAGE = 1;
     private ImageView imagenUsuario;
     private Uri photoUri;
-    public static final int MENU_GALLERY_ID = R.id.menu_gallery;
-    public static final int MENU_CAMERA_ID = R.id.menu_camera;
     private static final int PERMISSIONS_REQUEST_CAMERA = 100;
 
 
@@ -71,8 +69,23 @@ public class EditarDia extends AppCompatActivity {
             Long date = intentEditarDia.getLongExtra("date",0);
             Date fecha = new Date(date);
             String fechaS = fecha.toString();
+            byte[] imagenByteArray = null;
+            if (photoUri != null) {
+                try {
+                    InputStream inputStream = getContentResolver().openInputStream(photoUri);
+                    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                    byte[] buffer = new byte[1024];
+                    int len;
+                    while ((len = inputStream.read(buffer)) != -1) {
+                        byteArrayOutputStream.write(buffer, 0, len);
+                    }
+                    imagenByteArray = byteArrayOutputStream.toByteArray();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
             Entrada entradaAGuardar = new Entrada(binding.etxtTituloEntrada.getText().toString(),
-                    binding.etxtContenidoEntrada.getText().toString(),fechaS,MainActivity.getUsuarioApp(),0);
+                    binding.etxtContenidoEntrada.getText().toString(),fechaS,MainActivity.getUsuarioApp(),imagenByteArray);
             ge.insertarEntrada(entradaAGuardar);
             volverAInicio();
         });
@@ -91,8 +104,6 @@ public class EditarDia extends AppCompatActivity {
         binding.imgAddImage.setOnClickListener(e->{
             showImageSourceOptions();
         });
-
-
     }
     private final ActivityResultLauncher<Intent> imagePickerLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
@@ -111,7 +122,6 @@ public class EditarDia extends AppCompatActivity {
                     result -> {
                         if (result) {
                             imagenUsuario.setImageURI(photoUri);
-                            // Ajustar el tamaño y centrado de la imagen
                             imagenUsuario.getLayoutParams().width = RelativeLayout.LayoutParams.MATCH_PARENT;
                             imagenUsuario.getLayoutParams().height = RelativeLayout.LayoutParams.WRAP_CONTENT;
                             imagenUsuario.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
@@ -141,12 +151,10 @@ public class EditarDia extends AppCompatActivity {
     private void takePhotoWithPermissions() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED
                 || ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            // Si los permisos no están concedidos, solicítalos
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE},
                     PERMISSIONS_REQUEST_CAMERA);
         } else {
-            // Si los permisos están concedidos, toma la foto
             takePhoto();
         }
     }
@@ -156,10 +164,8 @@ public class EditarDia extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERMISSIONS_REQUEST_CAMERA) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Permiso concedido, tomar la foto
                 takePhoto();
             } else {
-                // Permiso denegado, mostrar un mensaje o tomar alguna otra acción
             }
         }
     }
@@ -192,7 +198,6 @@ public class EditarDia extends AppCompatActivity {
         }
     }
     public void volverAInicio(){
-        Intent intent = new Intent(this, InicioFragment.class);
-        startActivity(intent);
+        finish();
     }
 }

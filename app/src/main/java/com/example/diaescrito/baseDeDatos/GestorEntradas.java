@@ -1,9 +1,9 @@
 package com.example.diaescrito.baseDeDatos;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteStatement;
 import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -12,12 +12,11 @@ import com.example.diaescrito.entidades.Entrada;
 import com.example.diaescrito.entidades.Usuario;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public class GestorEntradas extends AppCompatActivity {
     SQLiteDatabase db;
-    private Context context;
+    private final Context context;
 
     private GestorUsuarios gestorUsuarios;
 
@@ -30,55 +29,52 @@ public class GestorEntradas extends AppCompatActivity {
         db = context.openOrCreateDatabase("Entradas", Context.MODE_PRIVATE, null);
         String crearEntradas =
                 "CREATE TABLE IF NOT EXISTS Entradas (" +
-                        "IdUsuario INTEGER PRIMARY KEY, " +
+                        "IdEntrada INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                        "IdUsuario INTEGER, " +
                         "Titulo TEXT, " +
                         "Contenido TEXT," +
-                        "Fecha TEXT " +");";
+                        "Fecha TEXT, " +
+                        "Imagen BLOB" +
+                        ");";
         db.execSQL(crearEntradas);
     }
+
     public void insertarEntrada(Entrada entrada){
         initializeDatabase();
-        SQLiteStatement statement = null;
         if (db != null) {
-            statement = db.compileStatement("INSERT INTO Entradas (IdUsuario,Titulo, Contenido,Fecha) VALUES (?, ?, ?,?);");
+            ContentValues values = new ContentValues();
+            values.put("IdUsuario", entrada.getUsuario().getIdUsuario());
+            values.put("Titulo", entrada.getTitulo());
+            values.put("Contenido", entrada.getContenido());
+            values.put("Fecha", entrada.getFecha());
+            values.put("Imagen", entrada.getImagen());
 
+            long result = db.insert("Entradas", null, values);
+            if (result == -1) {
+                Log.e("GestorEntradas", "Error al insertar la entrada en la base de datos");
+            }
         } else {
             Log.e("GestorBaseDeDatos", "La base de datos es nula. Asegúrate de inicializarla correctamente.");
         }
-        String idUsuario = String.valueOf(entrada.getUsuario().getIdUsuario());
-        String titulo = entrada.getTitulo();
-        String contenido = entrada.getContenido();
-        String fecha = entrada.getFecha();
-
-        statement.bindString(1, idUsuario);
-        statement.bindString(2, titulo);
-        statement.bindString(3, contenido);
-        statement.bindString(4, String.valueOf(fecha));
-
-        statement.executeInsert();
     }
+
     public List<Entrada> obtenerEntradas(Usuario usuario){
         List<Entrada> listaEntradas = new ArrayList<>();
-        String consulta = "SELECT * FROM Entradas where Entradas.IdUsuario = ?";
-        Cursor cursor = null;
-        try {
-            cursor = db.rawQuery(consulta, new String[]{String.valueOf(usuario.getIdUsuario())});
+        String consulta = "SELECT * FROM Entradas WHERE IdUsuario = ?";
+        try (Cursor cursor = db.rawQuery(consulta, new String[]{String.valueOf(usuario.getIdUsuario())})) {
 
             while (cursor.moveToNext()) {
                 Integer id = cursor.getInt(cursor.getColumnIndexOrThrow("IdEntrada"));
                 String titulo = cursor.getString(cursor.getColumnIndexOrThrow("Titulo"));
                 String contenido = cursor.getString(cursor.getColumnIndexOrThrow("Contenido"));
                 String fecha = cursor.getString(cursor.getColumnIndexOrThrow("Fecha"));
-                //TODO
-                Entrada entrada = new Entrada(titulo,contenido,fecha,usuario,0);
+                byte[] imagen = cursor.getBlob(cursor.getColumnIndexOrThrow("Imagen"));
+
+                Entrada entrada = new Entrada(titulo, contenido, fecha, usuario, imagen);
                 listaEntradas.add(entrada);
             }
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            if (cursor != null) {
-                cursor.close();
-            }
         }
 
         return listaEntradas;

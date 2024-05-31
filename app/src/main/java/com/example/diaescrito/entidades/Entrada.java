@@ -1,14 +1,12 @@
 package com.example.diaescrito.entidades;
 
-import java.util.Date;
-
 public class Entrada {
-    private String titulo,contenido;
+    private String titulo, contenido;
     private String fecha;
     private Usuario usuario;
-    private int imagen;
+    private byte[] imagen;
 
-    public Entrada(String titulo, String contenido, String fecha, Usuario usuario, int imagen) {
+    public Entrada(String titulo, String contenido, String fecha, Usuario usuario, byte[] imagen) {
         this.titulo = titulo;
         this.contenido = contenido;
         this.fecha = fecha;
@@ -16,11 +14,11 @@ public class Entrada {
         this.imagen = imagen;
     }
 
-    public int getImagen() {
+    public byte[] getImagen() {
         return imagen;
     }
 
-    public void setImagen(int imagen) {
+    public void setImagen(byte[] imagen) {
         this.imagen = imagen;
     }
 
@@ -57,7 +55,6 @@ public class Entrada {
     }
 
     public boolean hasImage() {
-        return imagen != 0;
+        return imagen != null && imagen.length > 0;
     }
-
 }
