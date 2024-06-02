@@ -36,13 +36,6 @@ public class IniciarSesion extends AppCompatActivity {
         gu = new GestorUsuarios(this);
         gu.borrarBaseDeDatos();
         gu.insertarUsuario(u);
-        //TODO
-        if(gu.comprobarUsuario(u.getEmail(),u.getContrasena())){
-            Usuario usuarioDB = gu.obtenerUsuarioPorEmail(u.getEmail());
-            MainActivity.setUsuarioApp(usuarioDB);
-            Intent intent = new Intent(this, MainActivity.class);
-            startActivity(intent);
-        }
 
         btnAcceder.setOnClickListener(e->{
             emailUsuarioS = emailUsuario.getText().toString();
