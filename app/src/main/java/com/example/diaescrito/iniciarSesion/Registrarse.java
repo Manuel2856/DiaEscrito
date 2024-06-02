@@ -9,6 +9,7 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 
 import com.example.diaescrito.EditarDia;
 import com.example.diaescrito.MainActivity;
@@ -32,6 +33,7 @@ public class Registrarse extends AppCompatActivity {
         etxtEmail = binding.etxtEmail;
         etxtContrasena = binding.etxtContrasena;
         gu = new GestorUsuarios(this);
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         btnRegistrarse.setOnClickListener(e->{
             String usuario,email,contrasena;
             usuario = etxtUsuario.getText().toString();

@@ -1,6 +1,5 @@
-package com.example.diaescrito.ui.home;
+package com.example.diaescrito.ui.Inicio;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -9,8 +8,8 @@ import android.view.ViewGroup;
 import android.widget.CalendarView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
 
 import com.example.diaescrito.EditarDia;
 import com.example.diaescrito.databinding.InicioFragmentBinding;
@@ -25,7 +24,7 @@ public class InicioFragment extends Fragment {
 
         binding = InicioFragmentBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
-
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         CalendarView calendario = binding.calendarView;
         Calendar calendar = Calendar.getInstance();
         //Obtengo los datos

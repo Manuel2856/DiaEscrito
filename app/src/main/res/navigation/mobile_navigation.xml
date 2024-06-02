@@ -7,13 +7,13 @@
 
     <fragment
         android:id="@+id/calendario"
-        android:name="com.example.diaescrito.ui.home.InicioFragment"
+        android:name="com.example.diaescrito.ui.Inicio.InicioFragment"
         android:label="@string/calendario"
         tools:layout="@layout/inicio_fragment" />
 
     <fragment
         android:id="@+id/mis_dias"
-        android:name="com.example.diaescrito.ui.dashboard.MisDiasFragment"
+        android:name="com.example.diaescrito.ui.misDias.MisDiasFragment"
         android:label="@string/mis_dias"
         tools:layout="@layout/mis_dias_fragment" />
 

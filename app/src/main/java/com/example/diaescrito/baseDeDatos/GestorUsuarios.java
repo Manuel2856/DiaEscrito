@@ -14,7 +14,7 @@ import com.example.diaescrito.entidades.Usuario;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GestorUsuarios extends AppCompatActivity {
+public class GestorUsuarios {
     SQLiteDatabase db;
     private Context context;
 
@@ -136,7 +136,7 @@ public class GestorUsuarios extends AppCompatActivity {
         int id = usuario.getIdUsuario();
         SQLiteStatement statement = null;
         statement = db.compileStatement("Delete FROM Usuarios where IdUsuario = ?");
-        statement.bindString(1, getString(id));
+        statement.bindString(1, String.valueOf(usuario.getIdUsuario()));
         statement.executeUpdateDelete();
     }
     public boolean comprobarUsuario(String email, String contrasena){

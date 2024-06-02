@@ -7,12 +7,12 @@ import android.widget.EditText;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 
 import com.example.diaescrito.MainActivity;
 import com.example.diaescrito.baseDeDatos.GestorUsuarios;
 import com.example.diaescrito.databinding.ActivityIniciarSesionBinding;
 import com.example.diaescrito.entidades.Usuario;
-import com.example.diaescrito.ui.home.InicioFragment;
 
 public class IniciarSesion extends AppCompatActivity {
     private ActivityIniciarSesionBinding binding;
@@ -26,7 +26,7 @@ public class IniciarSesion extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityIniciarSesionBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         btnAcceder = binding.btnAcceder;
         emailUsuario = binding.txtUsuario;
         contrasena = binding.txtContrasena;
@@ -36,12 +36,18 @@ public class IniciarSesion extends AppCompatActivity {
         gu = new GestorUsuarios(this);
         gu.borrarBaseDeDatos();
         gu.insertarUsuario(u);
-
+        //TODO
+        if(gu.comprobarUsuario(u.getEmail(),u.getContrasena())){
+            Usuario usuarioDB = gu.obtenerUsuarioPorEmail(u.getEmail());
+            MainActivity.setUsuarioApp(usuarioDB);
+            Intent intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
+        }
 
         btnAcceder.setOnClickListener(e->{
             emailUsuarioS = emailUsuario.getText().toString();
             contrasenaS = contrasena.getText().toString();
-            if(gu.comprobarUsuario(emailUsuarioS,contrasenaS)){
+            if(gu.comprobarUsuario(u.getEmail(),u.getContrasena())){
                 Usuario usuarioDB = gu.obtenerUsuarioPorEmail(emailUsuarioS);
                 MainActivity.setUsuarioApp(usuarioDB);
                 Intent intent = new Intent(this, MainActivity.class);

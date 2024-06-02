@@ -14,6 +14,13 @@ public class Entrada {
         this.imagen = imagen;
     }
 
+    public Entrada(String titulo, String contenido, String fecha, Usuario usuario) {
+        this.titulo = titulo;
+        this.contenido = contenido;
+        this.fecha = fecha;
+        this.usuario = usuario;
+    }
+
     public byte[] getImagen() {
         return imagen;
     }

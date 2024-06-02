@@ -14,7 +14,7 @@ import com.example.diaescrito.entidades.Usuario;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GestorEntradas extends AppCompatActivity {
+public class GestorEntradas {
     SQLiteDatabase db;
     private final Context context;
 
@@ -34,7 +34,8 @@ public class GestorEntradas extends AppCompatActivity {
                         "Titulo TEXT, " +
                         "Contenido TEXT," +
                         "Fecha TEXT, " +
-                        "Imagen BLOB" +
+                        "Imagen BLOB," +
+                        "FOREIGN KEY(IdUsuario) REFERENCES Usuarios(IdUsuario)" +
                         ");";
         db.execSQL(crearEntradas);
     }
@@ -47,7 +48,9 @@ public class GestorEntradas extends AppCompatActivity {
             values.put("Titulo", entrada.getTitulo());
             values.put("Contenido", entrada.getContenido());
             values.put("Fecha", entrada.getFecha());
-            values.put("Imagen", entrada.getImagen());
+            if (entrada.getImagen() != null) {
+                values.put("Imagen", entrada.getImagen());
+            }
 
             long result = db.insert("Entradas", null, values);
             if (result == -1) {
@@ -59,18 +62,30 @@ public class GestorEntradas extends AppCompatActivity {
     }
 
     public List<Entrada> obtenerEntradas(Usuario usuario){
+        initializeDatabase();
         List<Entrada> listaEntradas = new ArrayList<>();
+        Entrada entrada;
         String consulta = "SELECT * FROM Entradas WHERE IdUsuario = ?";
         try (Cursor cursor = db.rawQuery(consulta, new String[]{String.valueOf(usuario.getIdUsuario())})) {
 
             while (cursor.moveToNext()) {
-                Integer id = cursor.getInt(cursor.getColumnIndexOrThrow("IdEntrada"));
                 String titulo = cursor.getString(cursor.getColumnIndexOrThrow("Titulo"));
                 String contenido = cursor.getString(cursor.getColumnIndexOrThrow("Contenido"));
                 String fecha = cursor.getString(cursor.getColumnIndexOrThrow("Fecha"));
-                byte[] imagen = cursor.getBlob(cursor.getColumnIndexOrThrow("Imagen"));
+                byte[] imagen = null;
+                int imagenIndex = cursor.getColumnIndex("Imagen");
+                if (imagenIndex != -1) {
+                    if (!cursor.isNull(imagenIndex)) {
+                        imagen = cursor.getBlob(imagenIndex);
+                    }
+                }
+                if(imagen == null){
+                    entrada = new Entrada(titulo, contenido, fecha, usuario);
 
-                Entrada entrada = new Entrada(titulo, contenido, fecha, usuario, imagen);
+                }else{
+                    entrada = new Entrada(titulo, contenido, fecha, usuario, imagen);
+
+                }
                 listaEntradas.add(entrada);
             }
         } catch (Exception e) {

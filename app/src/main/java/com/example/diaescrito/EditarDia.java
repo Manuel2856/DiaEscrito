@@ -17,6 +17,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
@@ -24,7 +25,6 @@ import androidx.core.content.FileProvider;
 import com.example.diaescrito.baseDeDatos.GestorEntradas;
 import com.example.diaescrito.databinding.EditarDiaBinding;
 import com.example.diaescrito.entidades.Entrada;
-import com.example.diaescrito.ui.home.InicioFragment;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -59,9 +59,7 @@ public class EditarDia extends AppCompatActivity {
         Intent intentEditarDia = getIntent();
         ge = new GestorEntradas(this);
         imagenUsuario = binding.imgAddImage;
-
-
-
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         btnVolverAtras.setOnClickListener(e->{
             volverAInicio();
         });
