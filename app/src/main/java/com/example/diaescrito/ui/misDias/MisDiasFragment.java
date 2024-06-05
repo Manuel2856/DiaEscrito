@@ -1,5 +1,6 @@
 package com.example.diaescrito.ui.misDias;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,6 +12,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.diaescrito.EditarDia;
 import com.example.diaescrito.MainActivity;
 import com.example.diaescrito.adaptadores.AdaptadorHistorias;
 import com.example.diaescrito.baseDeDatos.GestorEntradas;
@@ -53,6 +55,9 @@ public class MisDiasFragment extends Fragment implements AdaptadorHistorias.list
     @Override
     public void onClickCardView(int posicion) {
         Entrada entrada = ge.obtenerEntradas(MainActivity.getUsuarioApp()).get(posicion);
-
+        MainActivity.setEntradaEditar(entrada);
+        Intent intent = new Intent(getActivity(), EditarDia.class);
+        startActivity(intent);
     }
+
 }

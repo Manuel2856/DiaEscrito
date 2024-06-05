@@ -1,12 +1,17 @@
 package com.example.diaescrito.entidades;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+
 public class Entrada {
     private String titulo, contenido;
-    private String fecha;
+    private Date fecha;
     private Usuario usuario;
     private byte[] imagen;
 
-    public Entrada(String titulo, String contenido, String fecha, Usuario usuario, byte[] imagen) {
+    public Entrada(String titulo, String contenido, Date fecha, Usuario usuario, byte[] imagen) {
         this.titulo = titulo;
         this.contenido = contenido;
         this.fecha = fecha;
@@ -14,7 +19,7 @@ public class Entrada {
         this.imagen = imagen;
     }
 
-    public Entrada(String titulo, String contenido, String fecha, Usuario usuario) {
+    public Entrada(String titulo, String contenido, Date fecha, Usuario usuario) {
         this.titulo = titulo;
         this.contenido = contenido;
         this.fecha = fecha;
@@ -29,11 +34,11 @@ public class Entrada {
         this.imagen = imagen;
     }
 
-    public String getFecha() {
+    public Date getFecha() {
         return fecha;
     }
 
-    public void setFecha(String fecha) {
+    public void setFecha(Date fecha) {
         this.fecha = fecha;
     }
 
@@ -64,4 +69,12 @@ public class Entrada {
     public boolean hasImage() {
         return imagen != null && imagen.length > 0;
     }
+    public String getFechaFormateada() {
+        return convertirFecha(this.fecha);
+    }
+    private String convertirFecha(Date fechaOriginal) {
+        SimpleDateFormat formatoSalida = new SimpleDateFormat("dd/MM/yyyy");
+        return formatoSalida.format(fechaOriginal);
+    }
+
 }

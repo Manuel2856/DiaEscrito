@@ -3,6 +3,8 @@ package com.example.diaescrito;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -30,6 +32,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -60,13 +63,29 @@ public class EditarDia extends AppCompatActivity {
         ge = new GestorEntradas(this);
         imagenUsuario = binding.imgAddImage;
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+        Entrada entradaEditar = MainActivity.getEntradaEditar();
+        if(entradaEditar!=null){
+            binding.etxtTituloEntrada.setText(entradaEditar.getTitulo());
+            binding.etxtContenidoEntrada.setText(entradaEditar.getContenido());
+            byte[] imagenBytes = entradaEditar.getImagen();
+
+            if (imagenBytes != null) {
+                Bitmap bitmap = BitmapFactory.decodeByteArray(imagenBytes, 0, imagenBytes.length);
+                binding.imgAddImage.setImageBitmap(bitmap);
+            }
+        }
         btnVolverAtras.setOnClickListener(e->{
             volverAInicio();
         });
         btnGuardar.setOnClickListener(e->{
-            Long date = intentEditarDia.getLongExtra("date",0);
-            Date fecha = new Date(date);
-            String fechaS = fecha.toString();
+            String fechaString = intentEditarDia.getStringExtra("date");
+            Date fechaDate = null;
+            try {
+                fechaDate = dateFormat.parse(fechaString);
+            } catch (ParseException a) {
+                a.printStackTrace();
+            }
             byte[] imagenByteArray = null;
             if (photoUri != null) {
                 try {
@@ -83,20 +102,19 @@ public class EditarDia extends AppCompatActivity {
                 }
             }
             Entrada entradaAGuardar = new Entrada(binding.etxtTituloEntrada.getText().toString(),
-                    binding.etxtContenidoEntrada.getText().toString(),fechaS,MainActivity.getUsuarioApp(),imagenByteArray);
+                    binding.etxtContenidoEntrada.getText().toString(),fechaDate,MainActivity.getUsuarioApp(),imagenByteArray);
             ge.insertarEntrada(entradaAGuardar);
+            MainActivity.setEntradaEditar(null);
             volverAInicio();
         });
         binding.etxtTituloEntrada.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus && contadorTituloEntrada == 0) {
+            if (hasFocus && binding.etxtTituloEntrada.getText().toString().equalsIgnoreCase("Título de la entrada")) {
                 binding.etxtTituloEntrada.setText("");
-                contadorTituloEntrada++;
             }
         });
         binding.etxtContenidoEntrada.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus && contadorContenidoEntrada ==0) {
+            if (hasFocus && binding.etxtContenidoEntrada.getText().toString().equalsIgnoreCase("Contenido")) {
                 binding.etxtContenidoEntrada.setText("");
-                contadorContenidoEntrada++;
             }
         });
         binding.imgAddImage.setOnClickListener(e->{

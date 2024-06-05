@@ -36,7 +36,13 @@ public class IniciarSesion extends AppCompatActivity {
         gu = new GestorUsuarios(this);
         gu.borrarBaseDeDatos();
         gu.insertarUsuario(u);
-
+        //TODO borrar esto antes de un push
+        if(gu.comprobarUsuario(u.getEmail(),u.getContrasena())){
+            Usuario usuarioDB = gu.obtenerUsuarioPorEmail(u.getEmail());
+            MainActivity.setUsuarioApp(usuarioDB);
+            Intent intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
+        }
         btnAcceder.setOnClickListener(e->{
             emailUsuarioS = emailUsuario.getText().toString();
             contrasenaS = contrasena.getText().toString();

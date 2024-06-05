@@ -25,6 +25,11 @@
         <item name="android:textSize">20sp</item>
         <item name="android:fontFamily">@font/montserrat_bold</item>
     </style>
+    <style name="textoAzul15sp">
+        <item name="android:textColor">@color/azul</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:fontFamily">@font/montserrat_regular</item>
+    </style>
     <style name="textoAzul">
         <item name="android:textColor">@color/azul</item>
         <item name="android:textSize">15sp</item>

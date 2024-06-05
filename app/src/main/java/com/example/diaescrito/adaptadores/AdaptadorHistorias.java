@@ -3,17 +3,18 @@ package com.example.diaescrito.adaptadores;
 import android.content.Context;
 import android.graphics.BitmapFactory;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.cardview.widget.CardView;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.diaescrito.R;
+import com.example.diaescrito.baseDeDatos.GestorEntradas;
 import com.example.diaescrito.entidades.Entrada;
 
 import java.util.List;
@@ -25,6 +26,7 @@ public class AdaptadorHistorias extends RecyclerView.Adapter<RecyclerView.ViewHo
     private List<Entrada> listaEntradas;
     private Context context;
     private AdaptadorHistorias.listener listener;
+    private GestorEntradas ge;
     public interface listener{
         void onClickCardView(int posicion);
     }
@@ -42,6 +44,7 @@ public class AdaptadorHistorias extends RecyclerView.Adapter<RecyclerView.ViewHo
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         context = parent.getContext();
+        ge = new GestorEntradas(context);
         if (viewType == TYPE_CON_IMAGEN) {
             View view = LayoutInflater.from(context).inflate(R.layout.item_historia_con_imagen, parent, false);
             return new HistoriaConImagenViewHolder(view);
@@ -58,14 +61,21 @@ public class AdaptadorHistorias extends RecyclerView.Adapter<RecyclerView.ViewHo
             HistoriaConImagenViewHolder conImagenHolder = (HistoriaConImagenViewHolder) holder;
             conImagenHolder.tituloTextView.setText(entrada.getTitulo());
             conImagenHolder.descripcionTextView.setText(entrada.getContenido());
+            String fecha = entrada.getFechaFormateada();
+            conImagenHolder.fechaTextView.setText(entrada.getFechaFormateada());
             conImagenHolder.imageView.setImageBitmap(BitmapFactory.decodeByteArray(entrada.getImagen(), 0, entrada.getImagen().length));
         } else {
             HistoriaSinImagenViewHolder sinImagenHolder = (HistoriaSinImagenViewHolder) holder;
             sinImagenHolder.tituloTextView.setText(entrada.getTitulo());
+            sinImagenHolder.fechaTextView.setText(entrada.getFechaFormateada());
             sinImagenHolder.descripcionTextView.setText(entrada.getContenido());
         }
 
         holder.itemView.setOnClickListener(v -> listener.onClickCardView(position));
+        holder.itemView.setOnLongClickListener(v -> {
+            showPopupMenu(v, position);
+            return true;
+        });
     }
 
     @Override
@@ -82,25 +92,53 @@ public class AdaptadorHistorias extends RecyclerView.Adapter<RecyclerView.ViewHo
     public static class HistoriaConImagenViewHolder extends RecyclerView.ViewHolder {
         private TextView tituloTextView;
         private TextView descripcionTextView;
+        private TextView fechaTextView;
         private ImageView imageView;
 
         public HistoriaConImagenViewHolder(@NonNull View itemView) {
             super(itemView);
             tituloTextView = itemView.findViewById(R.id.txtTituloHistoriaConImagen);
             descripcionTextView = itemView.findViewById(R.id.txtDescripcionConImagen);
-            imageView = itemView.findViewById(R.id.imgAddImage);
+            fechaTextView = itemView.findViewById(R.id.txtFechaConImagen);
+            imageView = itemView.findViewById(R.id.imgHistoriaConImagen);
         }
     }
 
     public static class HistoriaSinImagenViewHolder extends RecyclerView.ViewHolder {
         private TextView tituloTextView;
         private TextView descripcionTextView;
+        private TextView fechaTextView;
 
         public HistoriaSinImagenViewHolder(@NonNull View itemView) {
             super(itemView);
             tituloTextView = itemView.findViewById(R.id.txtTituloHistoriaSinImagen);
             descripcionTextView = itemView.findViewById(R.id.txtDescripcionSinImagen);
+            fechaTextView = itemView.findViewById(R.id.txtFechaSinImagen);
         }
+    }
+
+    private void showPopupMenu(View view, int position) {
+        PopupMenu popupMenu = new PopupMenu(context, view);
+        popupMenu.getMenuInflater().inflate(R.menu.borrar_entrada_menu, popupMenu.getMenu());
+        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                if(item.getItemId() == R.id.action_delete){
+                    deleteEntry(position);
+                    return true;
+                }else{
+                    return false;
+                }
+            }
+        });
+        popupMenu.show();
+    }
+    private void deleteEntry(int position) {
+        Entrada entrada = listaEntradas.get(position);
+        ge.eliminarEntrada(entrada);
+        listaEntradas.remove(position);
+        notifyItemRemoved(position);
+        notifyItemRangeChanged(position, listaEntradas.size());
     }
 
 }
