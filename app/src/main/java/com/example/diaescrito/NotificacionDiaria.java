@@ -16,7 +16,7 @@ import java.util.Calendar;
 public class NotificacionDiaria {
     private static final int NOTIFICATION_ID = 1001;
     private static final String CHANNEL_ID = "DailyReminderChannel";
-    public static void scheduleNotification(Context context, int hora, int minuto, int segundo) {
+    public static void scheduleNotification(Context context, int hora, int minuto) {
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(context, BootReceiver.class);
         PendingIntent pendingIntent = null;
@@ -29,8 +29,8 @@ public class NotificacionDiaria {
 
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(System.currentTimeMillis());
-        calendar.set(Calendar.HOUR_OF_DAY, 21);
-        calendar.set(Calendar.MINUTE, 26);
+        calendar.set(Calendar.HOUR_OF_DAY, hora);
+        calendar.set(Calendar.MINUTE, minuto);
         calendar.set(Calendar.SECOND, 0);
 
 
@@ -60,8 +60,12 @@ public class NotificacionDiaria {
                 .setAutoCancel(true);
 
         notificationManager.notify(NOTIFICATION_ID, builder.build());
-
-
+    }
+    public static void cancelScheduledNotifications(Context context) {
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(context, BootReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, NOTIFICATION_ID, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        alarmManager.cancel(pendingIntent);
     }
 
 }

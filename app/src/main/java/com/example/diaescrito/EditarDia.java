@@ -1,5 +1,7 @@
 package com.example.diaescrito;
 
+import static android.app.PendingIntent.getActivity;
+
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -23,6 +25,9 @@ import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.example.diaescrito.baseDeDatos.GestorEntradas;
 import com.example.diaescrito.databinding.EditarDiaBinding;
@@ -80,6 +85,9 @@ public class EditarDia extends AppCompatActivity {
         });
         btnGuardar.setOnClickListener(e->{
             String fechaString = intentEditarDia.getStringExtra("date");
+            if(fechaString==null){
+                fechaString = entradaEditar.getFechaFormateada();
+            }
             Date fechaDate = null;
             try {
                 fechaDate = dateFormat.parse(fechaString);

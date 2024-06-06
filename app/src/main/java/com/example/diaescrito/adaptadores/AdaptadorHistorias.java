@@ -27,6 +27,12 @@ public class AdaptadorHistorias extends RecyclerView.Adapter<RecyclerView.ViewHo
     private Context context;
     private AdaptadorHistorias.listener listener;
     private GestorEntradas ge;
+
+    public void updateData(List<Entrada> newEntradaList) {
+        listaEntradas = newEntradaList;
+        notifyDataSetChanged();
+    }
+
     public interface listener{
         void onClickCardView(int posicion);
     }

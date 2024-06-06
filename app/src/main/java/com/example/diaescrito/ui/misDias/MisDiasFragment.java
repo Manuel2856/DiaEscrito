@@ -27,6 +27,7 @@ public class MisDiasFragment extends Fragment implements AdaptadorHistorias.list
 
     private MisDiasFragmentBinding binding;
     private RecyclerView rvHistorias;
+    private AdaptadorHistorias adaptadorHistorias;
     private GestorEntradas ge;
 
 
@@ -41,8 +42,8 @@ public class MisDiasFragment extends Fragment implements AdaptadorHistorias.list
         ge = new GestorEntradas(requireContext());
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         List<Entrada>entradaList = ge.obtenerEntradas(MainActivity.getUsuarioApp());
-        AdaptadorHistorias adaptador = new AdaptadorHistorias(entradaList, this);
-        rvHistorias.setAdapter(adaptador);
+        adaptadorHistorias = new AdaptadorHistorias(entradaList, this);
+        rvHistorias.setAdapter(adaptadorHistorias);
         return root;
     }
 
@@ -53,11 +54,23 @@ public class MisDiasFragment extends Fragment implements AdaptadorHistorias.list
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        refreshData();
+    }
+
+    private void refreshData() {
+        List<Entrada> entradaList = ge.obtenerEntradas(MainActivity.getUsuarioApp());
+        adaptadorHistorias.updateData(entradaList);
+    }
+
+    @Override
     public void onClickCardView(int posicion) {
         Entrada entrada = ge.obtenerEntradas(MainActivity.getUsuarioApp()).get(posicion);
         MainActivity.setEntradaEditar(entrada);
         Intent intent = new Intent(getActivity(), EditarDia.class);
         startActivity(intent);
+
     }
 
 }

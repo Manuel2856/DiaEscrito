@@ -41,7 +41,7 @@ public class GestorEntradas {
                         "Fecha DATE, " +
                         "Imagen BLOB," +
                         "FOREIGN KEY(IdUsuario) REFERENCES Usuarios(IdUsuario), " +
-                        "UNIQUE(IdUsuario, Titulo, Fecha)" +
+                        "UNIQUE(IdUsuario, Titulo, Contenido, Fecha)" +
                         ");";
         db.execSQL(crearEntradas);
     }
