@@ -16,7 +16,7 @@ import java.util.Calendar;
 public class NotificacionDiaria {
     private static final int NOTIFICATION_ID = 1001;
     private static final String CHANNEL_ID = "DailyReminderChannel";
-    public static void scheduleNotification(Context context) {
+    public static void scheduleNotification(Context context, int hora, int minuto, int segundo) {
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(context, BootReceiver.class);
         PendingIntent pendingIntent = null;

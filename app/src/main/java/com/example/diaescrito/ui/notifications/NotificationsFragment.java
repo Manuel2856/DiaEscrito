@@ -2,6 +2,7 @@ package com.example.diaescrito.ui.notifications;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,8 +22,6 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import com.example.diaescrito.NotificacionDiaria;
 import com.example.diaescrito.databinding.FragmentNotificationsBinding;
 
-import org.w3c.dom.ls.LSOutput;
-
 public class NotificationsFragment extends Fragment {
 
     private FragmentNotificationsBinding binding;
@@ -33,6 +32,7 @@ public class NotificationsFragment extends Fragment {
         if (isGranted) {
             NotificacionDiaria.showNotification(requireContext());
         } else {
+
         }
     });
 
@@ -48,13 +48,9 @@ public class NotificationsFragment extends Fragment {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
                     swtNotificaciones.setText("Sí");
-                    if(ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.RECEIVE_BOOT_COMPLETED) == PackageManager.PERMISSION_GRANTED){
-                        NotificacionDiaria.showNotification(requireContext());
-                    }else {
-                        requestPermissionLauncher.launch(Manifest.permission.RECEIVE_BOOT_COMPLETED);
-                        //NotificacionDiaria.scheduleNotification(this);
-                        //NotificacionDiaria.showNotification(this);
-                    }
+                    requestPermissions();
+                    NotificacionDiaria.showNotification(requireContext());
+                    NotificacionDiaria.scheduleNotification(requireContext(),14,54,0);
                 } else {
                     swtNotificaciones.setText("No");
                 }
@@ -67,6 +63,22 @@ public class NotificationsFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
+    }
+    private void requestPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // Android 13
+            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED &&
+                    ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.RECEIVE_BOOT_COMPLETED) == PackageManager.PERMISSION_GRANTED) {
+            } else {
+                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
+                requestPermissionLauncher.launch(Manifest.permission.RECEIVE_BOOT_COMPLETED);
+            }
+        } else {
+            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.RECEIVE_BOOT_COMPLETED) == PackageManager.PERMISSION_GRANTED) {
+                NotificacionDiaria.showNotification(requireContext());
+            } else {
+                requestPermissionLauncher.launch(Manifest.permission.RECEIVE_BOOT_COMPLETED);
+            }
+        }
     }
 
 }
