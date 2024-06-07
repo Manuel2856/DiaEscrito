@@ -70,7 +70,5 @@ public class MisDiasFragment extends Fragment implements AdaptadorHistorias.list
         MainActivity.setEntradaEditar(entrada);
         Intent intent = new Intent(getActivity(), EditarDia.class);
         startActivity(intent);
-
     }
-
 }

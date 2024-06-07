@@ -4,9 +4,9 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.util.Log;
-
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.diaescrito.entidades.Entrada;
 import com.example.diaescrito.entidades.Usuario;
@@ -40,8 +40,7 @@ public class GestorEntradas {
                         "Contenido TEXT," +
                         "Fecha DATE, " +
                         "Imagen BLOB," +
-                        "FOREIGN KEY(IdUsuario) REFERENCES Usuarios(IdUsuario), " +
-                        "UNIQUE(IdUsuario, Titulo, Contenido, Fecha)" +
+                        "FOREIGN KEY(IdUsuario) REFERENCES Usuarios(IdUsuario) " +
                         ");";
         db.execSQL(crearEntradas);
     }
@@ -49,17 +48,24 @@ public class GestorEntradas {
 
     public void insertarEntrada(Entrada entrada){
         initializeDatabase();
+        Entrada entradaExistente = null;
         if (db != null) {
             ContentValues values = new ContentValues();
             values.put("IdUsuario", entrada.getUsuario().getIdUsuario());
             values.put("Titulo", entrada.getTitulo());
             values.put("Contenido", entrada.getContenido());
             values.put("Fecha", entrada.getFecha().toString());
+            if(entrada.getIdEntrada()!=0){
+                values.put("IdEntrada",entrada.getIdEntrada());
+            }
             if (entrada.getImagen() != null) {
                 values.put("Imagen", entrada.getImagen());
             }
             // Compruebo si la entrada ya existe
-            Entrada entradaExistente = obtenerEntradaPorTituloYFecha(entrada.getUsuario(), entrada.getTitulo(), entrada.getFecha());
+            if(entrada.getIdEntrada() !=0){
+                 entradaExistente = obtenerEntradaPorId(entrada.getIdEntrada());
+            }
+
             if (entradaExistente != null) {
                 long result = db.insertWithOnConflict("Entradas", null, values,SQLiteDatabase.CONFLICT_REPLACE);
                 if (result == -1) {
@@ -87,6 +93,7 @@ public class GestorEntradas {
                 String titulo = cursor.getString(cursor.getColumnIndexOrThrow("Titulo"));
                 String contenido = cursor.getString(cursor.getColumnIndexOrThrow("Contenido"));
                 String fecha = cursor.getString(cursor.getColumnIndexOrThrow("Fecha"));
+                String idEntrada = cursor.getString(cursor.getColumnIndexOrThrow("IdEntrada"));
                 Date fechaEntrada = null;
                 try {
                     fechaEntrada = inputFormat.parse(fecha);
@@ -101,11 +108,9 @@ public class GestorEntradas {
                     }
                 }
                 if(imagen == null){
-                    entrada = new Entrada(titulo, contenido, fechaEntrada, usuario);
-
+                    entrada = new Entrada(titulo, contenido, fechaEntrada, usuario,Integer.parseInt(idEntrada));
                 }else{
-                    entrada = new Entrada(titulo, contenido, fechaEntrada, usuario, imagen);
-
+                    entrada = new Entrada(titulo, contenido, fechaEntrada, usuario, imagen,Integer.parseInt(idEntrada));
                 }
                 listaEntradas.add(entrada);
             }
@@ -141,6 +146,58 @@ public class GestorEntradas {
 
         return entrada;
     }
+    public Entrada obtenerEntradaPorId(int idEntrada) {
+        initializeDatabase();
+        Entrada entrada = null;
+        String consulta = "SELECT * FROM Entradas WHERE IdEntrada = ?";
+
+        try (Cursor cursor = db.rawQuery(consulta, new String[]{String.valueOf(idEntrada)})) {
+            if (cursor.moveToFirst()) {
+                String titulo = cursor.getString(cursor.getColumnIndexOrThrow("Titulo"));
+                String contenido = cursor.getString(cursor.getColumnIndexOrThrow("Contenido"));
+                long fechaLong = cursor.getLong(cursor.getColumnIndexOrThrow("Fecha"));
+                Date fecha = new Date(fechaLong);
+                int idUsuario = cursor.getInt(cursor.getColumnIndexOrThrow("IdUsuario"));
+                Usuario usuario = obtenerUsuarioPorId(idUsuario);
+
+                byte[] imagen = null;
+                int imagenIndex = cursor.getColumnIndex("Imagen");
+                if (imagenIndex != -1 && !cursor.isNull(imagenIndex)) {
+                    imagen = cursor.getBlob(imagenIndex);
+                }
+
+                if (imagen == null) {
+                    entrada = new Entrada(titulo, contenido, fecha, usuario);
+                } else {
+                    entrada = new Entrada(titulo, contenido, fecha, usuario, imagen);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return entrada;
+    }
+
+    private Usuario obtenerUsuarioPorId(int idUsuario) {
+        Usuario usuario = null;
+        String consulta = "SELECT * FROM Usuarios WHERE IdUsuario = ?";
+
+        try (Cursor cursor = db.rawQuery(consulta, new String[]{String.valueOf(idUsuario)})) {
+            if (cursor.moveToFirst()) {
+                String nombre = cursor.getString(cursor.getColumnIndexOrThrow("Nombre"));
+                String email = cursor.getString(cursor.getColumnIndexOrThrow("Email"));
+                String contrasena = cursor.getString(cursor.getColumnIndexOrThrow("Contrasena"));
+                usuario = new Usuario(nombre, email, contrasena, idUsuario);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return usuario;
+    }
+
+
     public void eliminarEntrada(Entrada entrada) {
         initializeDatabase();
         String consulta = "DELETE FROM Entradas WHERE IdUsuario = ? AND Titulo = ? AND Fecha = ?";
@@ -149,6 +206,9 @@ public class GestorEntradas {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    public void borrarBaseDeDatos(){
+        context.deleteDatabase("Entradas");
     }
 
 

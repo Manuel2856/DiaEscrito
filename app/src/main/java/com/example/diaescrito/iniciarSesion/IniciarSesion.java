@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 
 import com.example.diaescrito.MainActivity;
+import com.example.diaescrito.baseDeDatos.GestorEntradas;
 import com.example.diaescrito.baseDeDatos.GestorUsuarios;
 import com.example.diaescrito.databinding.ActivityIniciarSesionBinding;
 import com.example.diaescrito.entidades.Usuario;
@@ -37,6 +38,8 @@ public class IniciarSesion extends AppCompatActivity {
         gu.borrarBaseDeDatos();
         gu.insertarUsuario(u);
         //TODO borrar esto antes de un push
+        GestorEntradas ge = new GestorEntradas(this);
+        ge.borrarBaseDeDatos();
         if(gu.comprobarUsuario(u.getEmail(),u.getContrasena())){
             Usuario usuarioDB = gu.obtenerUsuarioPorEmail(u.getEmail());
             MainActivity.setUsuarioApp(usuarioDB);

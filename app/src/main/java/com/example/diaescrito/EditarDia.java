@@ -3,6 +3,9 @@ package com.example.diaescrito;
 import static android.app.PendingIntent.getActivity;
 
 import android.Manifest;
+import android.app.Activity;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -14,7 +17,6 @@ import android.provider.MediaStore;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
-import android.widget.RelativeLayout;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -25,9 +27,6 @@ import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
-import androidx.fragment.app.FragmentTransaction;
 
 import com.example.diaescrito.baseDeDatos.GestorEntradas;
 import com.example.diaescrito.databinding.EditarDiaBinding;
@@ -54,6 +53,8 @@ public class EditarDia extends AppCompatActivity {
     private ImageView imagenUsuario;
     private Uri photoUri;
     private static final int PERMISSIONS_REQUEST_CAMERA = 100;
+    private ActivityResultLauncher<Intent> galleryLauncher;
+    private ActivityResultLauncher<Uri> cameraLauncher;
 
 
     @Override
@@ -99,18 +100,19 @@ public class EditarDia extends AppCompatActivity {
                 try {
                     InputStream inputStream = getContentResolver().openInputStream(photoUri);
                     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                    byte[] buffer = new byte[1024];
-                    int len;
-                    while ((len = inputStream.read(buffer)) != -1) {
-                        byteArrayOutputStream.write(buffer, 0, len);
-                    }
+                    Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 80, byteArrayOutputStream);
+
                     imagenByteArray = byteArrayOutputStream.toByteArray();
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
             }
+
             Entrada entradaAGuardar = new Entrada(binding.etxtTituloEntrada.getText().toString(),
-                    binding.etxtContenidoEntrada.getText().toString(),fechaDate,MainActivity.getUsuarioApp(),imagenByteArray);
+                    binding.etxtContenidoEntrada.getText().toString(),fechaDate,MainActivity.getUsuarioApp(),imagenByteArray,
+                    MainActivity.getEntradaEditar()!=null? MainActivity.getEntradaEditar().getIdEntrada() : 0);
             ge.insertarEntrada(entradaAGuardar);
             MainActivity.setEntradaEditar(null);
             volverAInicio();
@@ -126,51 +128,53 @@ public class EditarDia extends AppCompatActivity {
             }
         });
         binding.imgAddImage.setOnClickListener(e->{
-            showImageSourceOptions();
+            mostrarMenuFoto();
+        });
+
+        //Registro las actividades de la camara y la galeria
+        galleryLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                photoUri = result.getData().getData();
+                imagenUsuario.setImageURI(photoUri);
+            }
+        });
+        cameraLauncher = registerForActivityResult(new ActivityResultContracts.TakePicture(), success -> {
+            if (success) {
+                imagenUsuario.setImageURI(photoUri);
+            }
         });
     }
-    private final ActivityResultLauncher<Intent> imagePickerLauncher =
-            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
-                    result -> {
-                        if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                            Uri selectedImage = result.getData().getData();
-                            imagenUsuario.setImageURI(selectedImage);
-                            imagenUsuario.getLayoutParams().width = RelativeLayout.LayoutParams.MATCH_PARENT;
-                            imagenUsuario.getLayoutParams().height = RelativeLayout.LayoutParams.WRAP_CONTENT;
-                            imagenUsuario.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                            imagenUsuario.requestLayout();
-                        }
-                    });
-    private final ActivityResultLauncher<Uri> cameraLauncher =
-            registerForActivityResult(new ActivityResultContracts.TakePicture(),
-                    result -> {
-                        if (result) {
-                            imagenUsuario.setImageURI(photoUri);
-                            imagenUsuario.getLayoutParams().width = RelativeLayout.LayoutParams.MATCH_PARENT;
-                            imagenUsuario.getLayoutParams().height = RelativeLayout.LayoutParams.WRAP_CONTENT;
-                            imagenUsuario.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-                            imagenUsuario.requestLayout();
-                        }
-                    });
 
-    private void showImageSourceOptions() {
+
+    private void mostrarMenuFoto() {
         PopupMenu popupMenu = new PopupMenu(this, imagenUsuario);
         popupMenu.getMenuInflater().inflate(R.menu.menu_image_source, popupMenu.getMenu());
 
         popupMenu.setOnMenuItemClickListener(item -> {
             if (item.getItemId() == R.id.menu_gallery) {
                 Intent galleryIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                imagePickerLauncher.launch(galleryIntent);
+                galleryLauncher.launch(galleryIntent);
                 return true;
             } else if (item.getItemId() == R.id.menu_camera) {
 
-                takePhotoWithPermissions();
+                photoUri = createImageUri();
+                if (photoUri != null) {
+                    cameraLauncher.launch(photoUri);
+                }
                 return true;
             }
             return false;
         });
 
         popupMenu.show();
+    }
+    private Uri createImageUri() {
+        ContentResolver contentResolver = getContentResolver();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, "IMG_" + System.currentTimeMillis());
+        contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg");
+
+        return contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
     }
     private void takePhotoWithPermissions() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED

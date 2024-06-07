@@ -10,6 +10,23 @@ public class Entrada {
     private Date fecha;
     private Usuario usuario;
     private byte[] imagen;
+    private int idEntrada;
+
+    public Entrada(String titulo, String contenido, Date fecha, Usuario usuario, byte[] imagen, int idEntrada) {
+        this.titulo = titulo;
+        this.contenido = contenido;
+        this.fecha = fecha;
+        this.usuario = usuario;
+        this.imagen = imagen;
+        this.idEntrada = idEntrada;
+    }
+    public Entrada(String titulo, String contenido, Date fecha, Usuario usuario, int idEntrada) {
+        this.titulo = titulo;
+        this.contenido = contenido;
+        this.fecha = fecha;
+        this.usuario = usuario;
+        this.idEntrada = idEntrada;
+    }
 
     public Entrada(String titulo, String contenido, Date fecha, Usuario usuario, byte[] imagen) {
         this.titulo = titulo;
@@ -77,4 +94,11 @@ public class Entrada {
         return formatoSalida.format(fechaOriginal);
     }
 
+    public int getIdEntrada() {
+        return idEntrada;
+    }
+
+    public void setIdEntrada(int idEntrada) {
+        this.idEntrada = idEntrada;
+    }
 }
