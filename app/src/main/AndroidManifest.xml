@@ -26,14 +26,16 @@
         android:theme="@style/Theme.DiaEscrito"
         tools:targetApi="31">
 
+
+
+        <!-- Boot receiver para las notificaciones -->
         <receiver android:name=".BootReceiver" android:enabled="true" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="com.example.diaescrito.NOTIFY" />
             </intent-filter>
         </receiver>
-
-
+        <!-- File provider para el almacenamiento de la cámara y la galería -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="com.example.diaescrito.fileprovider"
@@ -45,8 +47,7 @@
         </provider>
         <activity
             android:name=".MainActivity"
-            android:exported="false">
-
+            android:exported="true">
         </activity>
         <activity android:name=".iniciarSesion.IniciarSesion"
             android:exported="true"
@@ -55,20 +56,13 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
         </activity>
         <activity android:name=".EditarDia"
             android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
         <activity android:name=".iniciarSesion.Registrarse"
             android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
 
     </application>

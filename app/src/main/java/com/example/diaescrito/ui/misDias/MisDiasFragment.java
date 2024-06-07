@@ -18,9 +18,7 @@ import com.example.diaescrito.adaptadores.AdaptadorHistorias;
 import com.example.diaescrito.baseDeDatos.GestorEntradas;
 import com.example.diaescrito.databinding.MisDiasFragmentBinding;
 import com.example.diaescrito.entidades.Entrada;
-import com.example.diaescrito.entidades.Usuario;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class MisDiasFragment extends Fragment implements AdaptadorHistorias.listener{
@@ -41,7 +39,7 @@ public class MisDiasFragment extends Fragment implements AdaptadorHistorias.list
         rvHistorias.setHasFixedSize(true);
         ge = new GestorEntradas(requireContext());
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-        List<Entrada>entradaList = ge.obtenerEntradas(MainActivity.getUsuarioApp());
+        List<Entrada>entradaList = ge.obtenerEntradasOrdenadasPorFecha(MainActivity.getUsuarioApp());
         adaptadorHistorias = new AdaptadorHistorias(entradaList, this);
         rvHistorias.setAdapter(adaptadorHistorias);
         return root;
@@ -60,13 +58,13 @@ public class MisDiasFragment extends Fragment implements AdaptadorHistorias.list
     }
 
     private void refreshData() {
-        List<Entrada> entradaList = ge.obtenerEntradas(MainActivity.getUsuarioApp());
+        List<Entrada> entradaList = ge.obtenerEntradasOrdenadasPorFecha(MainActivity.getUsuarioApp());
         adaptadorHistorias.updateData(entradaList);
     }
 
     @Override
     public void onClickCardView(int posicion) {
-        Entrada entrada = ge.obtenerEntradas(MainActivity.getUsuarioApp()).get(posicion);
+        Entrada entrada = ge.obtenerEntradasOrdenadasPorFecha(MainActivity.getUsuarioApp()).get(posicion);
         MainActivity.setEntradaEditar(entrada);
         Intent intent = new Intent(getActivity(), EditarDia.class);
         startActivity(intent);

@@ -17,6 +17,7 @@ import android.provider.MediaStore;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -31,6 +32,7 @@ import androidx.core.content.FileProvider;
 import com.example.diaescrito.baseDeDatos.GestorEntradas;
 import com.example.diaescrito.databinding.EditarDiaBinding;
 import com.example.diaescrito.entidades.Entrada;
+import com.example.diaescrito.entidades.Usuario;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -55,6 +57,8 @@ public class EditarDia extends AppCompatActivity {
     private static final int PERMISSIONS_REQUEST_CAMERA = 100;
     private ActivityResultLauncher<Intent> galleryLauncher;
     private ActivityResultLauncher<Uri> cameraLauncher;
+    private ActivityResultLauncher<String> requestCameraPermissionLauncher;
+
 
 
     @Override
@@ -109,7 +113,7 @@ public class EditarDia extends AppCompatActivity {
                     ex.printStackTrace();
                 }
             }
-
+            Usuario user = MainActivity.getUsuarioApp();
             Entrada entradaAGuardar = new Entrada(binding.etxtTituloEntrada.getText().toString(),
                     binding.etxtContenidoEntrada.getText().toString(),fechaDate,MainActivity.getUsuarioApp(),imagenByteArray,
                     MainActivity.getEntradaEditar()!=null? MainActivity.getEntradaEditar().getIdEntrada() : 0);
@@ -143,6 +147,16 @@ public class EditarDia extends AppCompatActivity {
                 imagenUsuario.setImageURI(photoUri);
             }
         });
+        requestCameraPermissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+            if (isGranted) {
+                photoUri = crearUriImagen();
+                if (photoUri != null) {
+                    cameraLauncher.launch(photoUri);
+                }
+            } else {
+                Toast.makeText(this, "Se necesita el permiso de la cámara para poder hacer fotos.", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
 
@@ -156,11 +170,8 @@ public class EditarDia extends AppCompatActivity {
                 galleryLauncher.launch(galleryIntent);
                 return true;
             } else if (item.getItemId() == R.id.menu_camera) {
+                requestCameraPermissionLauncher.launch(Manifest.permission.CAMERA);
 
-                photoUri = createImageUri();
-                if (photoUri != null) {
-                    cameraLauncher.launch(photoUri);
-                }
                 return true;
             }
             return false;
@@ -168,7 +179,7 @@ public class EditarDia extends AppCompatActivity {
 
         popupMenu.show();
     }
-    private Uri createImageUri() {
+    private Uri crearUriImagen() {
         ContentResolver contentResolver = getContentResolver();
         ContentValues contentValues = new ContentValues();
         contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, "IMG_" + System.currentTimeMillis());
@@ -202,7 +213,7 @@ public class EditarDia extends AppCompatActivity {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
             try {
-                File photoFile = createImageFile();
+                File photoFile = crearArchivoDeImagen();
                 photoUri = FileProvider.getUriForFile(this, "com.example.diaescrito.fileprovider", photoFile);
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
                 cameraLauncher.launch(photoUri);
@@ -211,7 +222,7 @@ public class EditarDia extends AppCompatActivity {
             }
         }
     }
-    private File createImageFile() throws IOException {
+    private File crearArchivoDeImagen() throws IOException {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.UK).format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);

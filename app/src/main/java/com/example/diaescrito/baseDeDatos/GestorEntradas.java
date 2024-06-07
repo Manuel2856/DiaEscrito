@@ -4,8 +4,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.util.Log;
 
 import com.example.diaescrito.entidades.Entrada;
@@ -82,11 +80,11 @@ public class GestorEntradas {
         }
     }
 
-    public List<Entrada> obtenerEntradas(Usuario usuario){
+    public List<Entrada> obtenerEntradasOrdenadasPorFecha(Usuario usuario){
         initializeDatabase();
         List<Entrada> listaEntradas = new ArrayList<>();
         Entrada entrada;
-        String consulta = "SELECT * FROM Entradas WHERE IdUsuario = ?";
+        String consulta = "SELECT * FROM Entradas WHERE IdUsuario = ? ORDER BY Fecha DESC";
         try (Cursor cursor = db.rawQuery(consulta, new String[]{String.valueOf(usuario.getIdUsuario())})) {
 
             while (cursor.moveToNext()) {
