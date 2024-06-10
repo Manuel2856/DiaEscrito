@@ -32,8 +32,6 @@ public class IniciarSesion extends AppCompatActivity {
         emailUsuario = binding.txtUsuario;
         contrasena = binding.txtContrasena;
 
-
-        Usuario u = new Usuario("Usuario","a","a");
         gu = new GestorUsuarios(this);
 
         btnAcceder.setOnClickListener(e->{
