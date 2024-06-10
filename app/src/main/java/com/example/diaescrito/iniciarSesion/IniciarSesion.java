@@ -39,7 +39,7 @@ public class IniciarSesion extends AppCompatActivity {
         btnAcceder.setOnClickListener(e->{
             emailUsuarioS = emailUsuario.getText().toString();
             contrasenaS = contrasena.getText().toString();
-            if(gu.comprobarUsuario(u.getEmail(),u.getContrasena())){
+            if(gu.comprobarUsuario(emailUsuarioS,contrasenaS)){
                 Usuario usuarioDB = gu.obtenerUsuarioPorEmail(emailUsuarioS);
                 MainActivity.setUsuarioApp(usuarioDB);
                 Intent intent = new Intent(this, MainActivity.class);
