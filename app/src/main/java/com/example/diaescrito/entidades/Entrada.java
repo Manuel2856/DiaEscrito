@@ -11,36 +11,9 @@ public class Entrada {
     private Usuario usuario;
     private byte[] imagen;
     private int idEntrada;
+    private Categoria categoria;
 
-    public Entrada(String titulo, String contenido, Date fecha, Usuario usuario, byte[] imagen, int idEntrada) {
-        this.titulo = titulo;
-        this.contenido = contenido;
-        this.fecha = fecha;
-        this.usuario = usuario;
-        this.imagen = imagen;
-        this.idEntrada = idEntrada;
-    }
-    public Entrada(String titulo, String contenido, Date fecha, Usuario usuario, int idEntrada) {
-        this.titulo = titulo;
-        this.contenido = contenido;
-        this.fecha = fecha;
-        this.usuario = usuario;
-        this.idEntrada = idEntrada;
-    }
-
-    public Entrada(String titulo, String contenido, Date fecha, Usuario usuario, byte[] imagen) {
-        this.titulo = titulo;
-        this.contenido = contenido;
-        this.fecha = fecha;
-        this.usuario = usuario;
-        this.imagen = imagen;
-    }
-
-    public Entrada(String titulo, String contenido, Date fecha, Usuario usuario) {
-        this.titulo = titulo;
-        this.contenido = contenido;
-        this.fecha = fecha;
-        this.usuario = usuario;
+    public Entrada() {
     }
 
     public byte[] getImagen() {
@@ -81,6 +54,14 @@ public class Entrada {
 
     public void setContenido(String contenido) {
         this.contenido = contenido;
+    }
+
+    public Categoria getCategoria() {
+        return categoria;
+    }
+
+    public void setCategoria(Categoria categoria) {
+        this.categoria = categoria;
     }
 
     public boolean hasImage() {

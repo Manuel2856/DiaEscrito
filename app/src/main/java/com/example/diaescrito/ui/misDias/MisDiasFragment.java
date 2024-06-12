@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.diaescrito.EditarDia;
 import com.example.diaescrito.MainActivity;
 import com.example.diaescrito.adaptadores.AdaptadorHistorias;
+import com.example.diaescrito.baseDeDatos.GestorCategorias;
 import com.example.diaescrito.baseDeDatos.GestorEntradas;
 import com.example.diaescrito.databinding.MisDiasFragmentBinding;
 import com.example.diaescrito.entidades.Entrada;
@@ -27,6 +28,7 @@ public class MisDiasFragment extends Fragment implements AdaptadorHistorias.list
     private RecyclerView rvHistorias;
     private AdaptadorHistorias adaptadorHistorias;
     private GestorEntradas ge;
+    private GestorCategorias gc;
 
 
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -37,6 +39,7 @@ public class MisDiasFragment extends Fragment implements AdaptadorHistorias.list
         rvHistorias = binding.rvHistorias;
         rvHistorias.setLayoutManager(new LinearLayoutManager(requireContext()));
         rvHistorias.setHasFixedSize(true);
+        gc = new GestorCategorias(requireContext());
         ge = new GestorEntradas(requireContext());
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         List<Entrada>entradaList = ge.obtenerEntradasOrdenadasPorFecha(MainActivity.getUsuarioApp());

@@ -14,9 +14,11 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -29,8 +31,10 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
+import com.example.diaescrito.baseDeDatos.GestorCategorias;
 import com.example.diaescrito.baseDeDatos.GestorEntradas;
 import com.example.diaescrito.databinding.EditarDiaBinding;
+import com.example.diaescrito.entidades.Categoria;
 import com.example.diaescrito.entidades.Entrada;
 import com.example.diaescrito.entidades.Usuario;
 
@@ -40,24 +44,31 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
-
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 
 public class EditarDia extends AppCompatActivity {
     private EditarDiaBinding binding;
     private ImageView btnVolverAtras;
     private Button btnGuardar;
+    private Spinner spinnerCategorias;
     private int contadorTituloEntrada=0, contadorContenidoEntrada=0;
     private GestorEntradas ge;
     private static final int PICK_IMAGE = 1;
     private ImageView imagenUsuario;
+    private GestorCategorias gc;
+
     private Uri photoUri;
     private static final int PERMISSIONS_REQUEST_CAMERA = 100;
     private ActivityResultLauncher<Intent> galleryLauncher;
     private ActivityResultLauncher<Uri> cameraLauncher;
     private ActivityResultLauncher<String> requestCameraPermissionLauncher;
+
 
 
 
@@ -70,14 +81,19 @@ public class EditarDia extends AppCompatActivity {
         btnVolverAtras = binding.btnVolverAtras;
         btnGuardar = binding.btnGuardar;
         Intent intentEditarDia = getIntent();
+        gc = new GestorCategorias(this);
         ge = new GestorEntradas(this);
         imagenUsuario = binding.imgAddImage;
+        spinnerCategorias = binding.spinCategorias;
+        loadCategoriesIntoSpinner();
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
         Entrada entradaEditar = MainActivity.getEntradaEditar();
         if(entradaEditar!=null){
             binding.etxtTituloEntrada.setText(entradaEditar.getTitulo());
             binding.etxtContenidoEntrada.setText(entradaEditar.getContenido());
+            String categoria = entradaEditar.getCategoria().getNombre();
+            setSpinnerToCategory(categoria);
             byte[] imagenBytes = entradaEditar.getImagen();
 
             if (imagenBytes != null) {
@@ -89,7 +105,10 @@ public class EditarDia extends AppCompatActivity {
             volverAInicio();
         });
         btnGuardar.setOnClickListener(e->{
+            Entrada entradaAGuardar = new Entrada();
             String fechaString = intentEditarDia.getStringExtra("date");
+            String nombreCategoria = (String) spinnerCategorias.getSelectedItem();
+            Categoria categoria = gc.getCategoryByName(nombreCategoria);
             if(fechaString==null){
                 fechaString = entradaEditar.getFechaFormateada();
             }
@@ -109,14 +128,18 @@ public class EditarDia extends AppCompatActivity {
                     bitmap.compress(Bitmap.CompressFormat.JPEG, 80, byteArrayOutputStream);
 
                     imagenByteArray = byteArrayOutputStream.toByteArray();
+
+                    entradaAGuardar.setImagen(imagenByteArray);
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
             }
-            Usuario user = MainActivity.getUsuarioApp();
-            Entrada entradaAGuardar = new Entrada(binding.etxtTituloEntrada.getText().toString(),
-                    binding.etxtContenidoEntrada.getText().toString(),fechaDate,MainActivity.getUsuarioApp(),imagenByteArray,
-                    MainActivity.getEntradaEditar()!=null? MainActivity.getEntradaEditar().getIdEntrada() : 0);
+            entradaAGuardar.setTitulo(binding.etxtTituloEntrada.getText().toString());
+            entradaAGuardar.setContenido(binding.etxtContenidoEntrada.getText().toString());
+            entradaAGuardar.setFecha(fechaDate);
+            entradaAGuardar.setUsuario(MainActivity.getUsuarioApp());
+            entradaAGuardar.setIdEntrada(MainActivity.getEntradaEditar()!=null? MainActivity.getEntradaEditar().getIdEntrada() : 0);
+            entradaAGuardar.setCategoria(categoria);
             ge.insertarEntrada(entradaAGuardar);
             MainActivity.setEntradaEditar(null);
             volverAInicio();
@@ -236,7 +259,29 @@ public class EditarDia extends AppCompatActivity {
             imagenUsuario.setImageURI(selectedImage);
         }
     }
+    private void loadCategoriesIntoSpinner() {
+        List<Categoria> categories = gc.getAllCategories();
+        List<String> categoryNames = new ArrayList<>();
+        for (Categoria categoria : categories) {
+            categoryNames.add(categoria.getNombre());
+        }
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, categoryNames);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerCategorias.setAdapter(adapter);
+    }
+
     public void volverAInicio(){
         finish();
+    }
+    private void setSpinnerToCategory(String nombreCategoria) {
+        ArrayAdapter<String> adapter = (ArrayAdapter<String>) spinnerCategorias.getAdapter();
+        int cuenta = adapter.getCount();
+        for (int i = 0; i < adapter.getCount(); i++) {
+            String categoria = adapter.getItem(i);
+            if (nombreCategoria.equalsIgnoreCase(categoria)) {
+                spinnerCategorias.setSelection(i);
+                break;
+            }
+        }
     }
 }

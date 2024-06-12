@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.Manifest;
 
 
+import com.example.diaescrito.baseDeDatos.GestorCategorias;
+import com.example.diaescrito.entidades.Categoria;
 import com.example.diaescrito.entidades.Entrada;
 import com.example.diaescrito.entidades.Usuario;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -21,19 +23,22 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.example.diaescrito.databinding.ActivityMainBinding;
 
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
     private static Usuario usuarioApp;
     private static Entrada entradaEditar;
     private static final int PERMISSION_REQUEST_CODE = 1001;
+    private GestorCategorias gc;
 
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        gc = new GestorCategorias(this);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
@@ -44,8 +49,7 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
-
-
+        crearCategorias();
     }
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -80,4 +84,19 @@ public class MainActivity extends AppCompatActivity {
     private void pedirPermisoNotificaciones() {
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECEIVE_BOOT_COMPLETED}, PERMISSION_REQUEST_CODE);
     }
+    private void crearCategorias(){
+        Categoria verano = new Categoria();
+        Categoria invierno = new Categoria();
+        Categoria otono = new Categoria();
+        Categoria primavera = new Categoria();
+        verano.setNombre("Verano");
+        invierno.setNombre("Invierno");
+        otono.setNombre("Otoño");
+        primavera.setNombre("Primavera");
+        gc.addCategory(verano);
+        gc.addCategory(invierno);
+        gc.addCategory(otono);
+        gc.addCategory(primavera);
+    }
+
 }

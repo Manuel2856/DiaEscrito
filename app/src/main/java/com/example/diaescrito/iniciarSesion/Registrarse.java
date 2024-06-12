@@ -40,9 +40,8 @@ public class Registrarse extends AppCompatActivity {
             email = etxtEmail.getText().toString();
             contrasena = etxtContrasena.getText().toString();
             Usuario nuevoUsuario = new Usuario(usuario,email,contrasena);
-            System.out.println("ojo");
             if(gu.insertarUsuario(nuevoUsuario)){
-                System.out.println("Se ha creado el usuario: " + nuevoUsuario.getNombre());
+                MainActivity.setUsuarioApp(nuevoUsuario);
                 Intent intent = new Intent(this, MainActivity.class);
                 intent.putExtra("Email", email);
                 startActivity(intent);

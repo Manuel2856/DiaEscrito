@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
+import com.example.diaescrito.entidades.Categoria;
 import com.example.diaescrito.entidades.Entrada;
 import com.example.diaescrito.entidades.Usuario;
 
@@ -20,11 +21,13 @@ public class GestorEntradas {
     SQLiteDatabase db;
     private final Context context;
 
-    private GestorUsuarios gestorUsuarios;
+    private GestorCategorias gc;
     SimpleDateFormat inputFormat = new SimpleDateFormat("E MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH);
     SimpleDateFormat outputFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
     public GestorEntradas(Context context) {
         this.context = context;
+        gc = new GestorCategorias(context);
+        gc = new GestorCategorias(context);
         initializeDatabase();
     }
 
@@ -38,7 +41,9 @@ public class GestorEntradas {
                         "Contenido TEXT," +
                         "Fecha DATE, " +
                         "Imagen BLOB," +
-                        "FOREIGN KEY(IdUsuario) REFERENCES Usuarios(IdUsuario) " +
+                        "IdCategoria INTEGER, " +
+                        "FOREIGN KEY(IdUsuario) REFERENCES Usuarios(IdUsuario), " +
+                        "FOREIGN KEY(IdCategoria) REFERENCES Categorias(IdCategoria) " +
                         ");";
         db.execSQL(crearEntradas);
     }
@@ -53,6 +58,7 @@ public class GestorEntradas {
             values.put("Titulo", entrada.getTitulo());
             values.put("Contenido", entrada.getContenido());
             values.put("Fecha", entrada.getFecha().toString());
+            values.put("IdCategoria", entrada.getCategoria().getIdCategoria());
             if(entrada.getIdEntrada()!=0){
                 values.put("IdEntrada",entrada.getIdEntrada());
             }
@@ -63,7 +69,7 @@ public class GestorEntradas {
             if(entrada.getIdEntrada() !=0){
                  entradaExistente = obtenerEntradaPorId(entrada.getIdEntrada());
             }
-
+            values.put("IdCategoria",entrada.getCategoria().getIdCategoria());
             if (entradaExistente != null) {
                 long result = db.insertWithOnConflict("Entradas", null, values,SQLiteDatabase.CONFLICT_REPLACE);
                 if (result == -1) {
@@ -83,16 +89,20 @@ public class GestorEntradas {
     public List<Entrada> obtenerEntradasOrdenadasPorFecha(Usuario usuario){
         initializeDatabase();
         List<Entrada> listaEntradas = new ArrayList<>();
-        Entrada entrada;
-        String consulta = "SELECT * FROM Entradas WHERE IdUsuario = ? ORDER BY Fecha DESC";
+        Categoria verano = gc.getCategoryByName("Verano");
+        String consulta = "SELECT * " +
+                "FROM Entradas " +
+                "WHERE IdUsuario = ? ORDER BY Fecha DESC";
         try (Cursor cursor = db.rawQuery(consulta, new String[]{String.valueOf(usuario.getIdUsuario())})) {
-
             while (cursor.moveToNext()) {
+                Entrada entrada = new Entrada();
                 String titulo = cursor.getString(cursor.getColumnIndexOrThrow("Titulo"));
                 String contenido = cursor.getString(cursor.getColumnIndexOrThrow("Contenido"));
                 String fecha = cursor.getString(cursor.getColumnIndexOrThrow("Fecha"));
                 String idEntrada = cursor.getString(cursor.getColumnIndexOrThrow("IdEntrada"));
+                String idCategoria = cursor.getString(cursor.getColumnIndexOrThrow("IdCategoria"));
                 Date fechaEntrada = null;
+
                 try {
                     fechaEntrada = inputFormat.parse(fecha);
                 } catch (ParseException e) {
@@ -103,13 +113,19 @@ public class GestorEntradas {
                 if (imagenIndex != -1) {
                     if (!cursor.isNull(imagenIndex)) {
                         imagen = cursor.getBlob(imagenIndex);
+                        entrada.setImagen(imagen);
                     }
                 }
-                if(imagen == null){
-                    entrada = new Entrada(titulo, contenido, fechaEntrada, usuario,Integer.parseInt(idEntrada));
-                }else{
-                    entrada = new Entrada(titulo, contenido, fechaEntrada, usuario, imagen,Integer.parseInt(idEntrada));
-                }
+                entrada.setTitulo(titulo);
+                entrada.setContenido(contenido);
+                entrada.setFecha(fechaEntrada);
+                entrada.setUsuario(usuario);
+                entrada.setIdEntrada(Integer.parseInt(idEntrada));
+
+                //Obtengo la categoria de la entrada
+                Categoria categoria = gc.getCategoryById(Integer.parseInt(idCategoria));
+                entrada.setCategoria(categoria);
+
                 listaEntradas.add(entrada);
             }
         } catch (Exception e) {
@@ -118,39 +134,18 @@ public class GestorEntradas {
 
         return listaEntradas;
     }
-    public Entrada obtenerEntradaPorTituloYFecha(Usuario usuario, String titulo, Date fecha) {
-        initializeDatabase();
-        Entrada entrada = null;
-        String consulta = "SELECT * FROM Entradas WHERE IdUsuario = ? AND Titulo = ? AND Fecha = ?";
-        try (Cursor cursor = db.rawQuery(consulta, new String[]{String.valueOf(usuario.getIdUsuario()), titulo, String.valueOf(fecha)})) {
-            if (cursor.moveToFirst()) {
-                String contenido = cursor.getString(cursor.getColumnIndexOrThrow("Contenido"));
-                byte[] imagen = null;
-                int imagenIndex = cursor.getColumnIndex("Imagen");
-                if (imagenIndex != -1) {
-                    if (!cursor.isNull(imagenIndex)) {
-                        imagen = cursor.getBlob(imagenIndex);
-                    }
-                }
-                if (imagen == null) {
-                    entrada = new Entrada(titulo, contenido, fecha, usuario);
-                } else {
-                    entrada = new Entrada(titulo, contenido, fecha, usuario, imagen);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return entrada;
-    }
     public Entrada obtenerEntradaPorId(int idEntrada) {
         initializeDatabase();
-        Entrada entrada = null;
-        String consulta = "SELECT * FROM Entradas WHERE IdEntrada = ?";
 
+        String consulta = "SELECT *" +
+                "FROM Entradas " +
+                "WHERE IdEntrada = ?";
+
+        Entrada entrada = null;
         try (Cursor cursor = db.rawQuery(consulta, new String[]{String.valueOf(idEntrada)})) {
+            entrada = new Entrada();
             if (cursor.moveToFirst()) {
+
                 String titulo = cursor.getString(cursor.getColumnIndexOrThrow("Titulo"));
                 String contenido = cursor.getString(cursor.getColumnIndexOrThrow("Contenido"));
                 long fechaLong = cursor.getLong(cursor.getColumnIndexOrThrow("Fecha"));
@@ -158,17 +153,23 @@ public class GestorEntradas {
                 int idUsuario = cursor.getInt(cursor.getColumnIndexOrThrow("IdUsuario"));
                 Usuario usuario = obtenerUsuarioPorId(idUsuario);
 
+                String idCategoria = cursor.getString(cursor.getColumnIndexOrThrow("IdCategoria"));
+                Categoria categoria = gc.getCategoryById(Integer.parseInt(idCategoria));
+
+
                 byte[] imagen = null;
                 int imagenIndex = cursor.getColumnIndex("Imagen");
                 if (imagenIndex != -1 && !cursor.isNull(imagenIndex)) {
                     imagen = cursor.getBlob(imagenIndex);
+                    entrada.setImagen(imagen);
                 }
 
-                if (imagen == null) {
-                    entrada = new Entrada(titulo, contenido, fecha, usuario);
-                } else {
-                    entrada = new Entrada(titulo, contenido, fecha, usuario, imagen);
-                }
+                entrada.setTitulo(titulo);
+                entrada.setContenido(contenido);
+                entrada.setFecha(fecha);
+                entrada.setUsuario(usuario);
+                entrada.setCategoria(categoria);
+
             }
         } catch (Exception e) {
             e.printStackTrace();
