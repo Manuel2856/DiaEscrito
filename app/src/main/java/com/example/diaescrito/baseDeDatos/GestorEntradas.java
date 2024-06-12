@@ -123,7 +123,7 @@ public class GestorEntradas {
                 entrada.setIdEntrada(Integer.parseInt(idEntrada));
 
                 //Obtengo la categoria de la entrada
-                Categoria categoria = gc.getCategoryById(Integer.parseInt(idCategoria));
+                Categoria categoria = gc.obtenerCategoriaPorId(Integer.parseInt(idCategoria));
                 entrada.setCategoria(categoria);
 
                 listaEntradas.add(entrada);
@@ -154,7 +154,7 @@ public class GestorEntradas {
                 Usuario usuario = obtenerUsuarioPorId(idUsuario);
 
                 String idCategoria = cursor.getString(cursor.getColumnIndexOrThrow("IdCategoria"));
-                Categoria categoria = gc.getCategoryById(Integer.parseInt(idCategoria));
+                Categoria categoria = gc.obtenerCategoriaPorId(Integer.parseInt(idCategoria));
 
 
                 byte[] imagen = null;

@@ -70,7 +70,7 @@ public class GestorCategorias {
         cursor.close();
         return categoria;
     }
-    public Categoria getCategoryById(int categoryId) {
+    public Categoria obtenerCategoriaPorId(int categoryId) {
         initializeDatabase();
         Cursor cursor = db.rawQuery("SELECT * FROM Categorias WHERE IdCategoria = ?", new String[]{String.valueOf(categoryId)});
         Categoria categoria = null;
