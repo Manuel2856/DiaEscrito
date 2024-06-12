@@ -89,7 +89,7 @@ public class GestorEntradas {
     public List<Entrada> obtenerEntradasOrdenadasPorFecha(Usuario usuario){
         initializeDatabase();
         List<Entrada> listaEntradas = new ArrayList<>();
-        Categoria verano = gc.getCategoryByName("Verano");
+        Categoria verano = gc.obtenerCategoriaPorNombre("Verano");
         String consulta = "SELECT * " +
                 "FROM Entradas " +
                 "WHERE IdUsuario = ? ORDER BY Fecha DESC";

@@ -23,8 +23,6 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.example.diaescrito.databinding.ActivityMainBinding;
 
-import java.util.List;
-
 public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
@@ -93,10 +91,10 @@ public class MainActivity extends AppCompatActivity {
         invierno.setNombre("Invierno");
         otono.setNombre("Otoño");
         primavera.setNombre("Primavera");
-        gc.addCategory(verano);
-        gc.addCategory(invierno);
-        gc.addCategory(otono);
-        gc.addCategory(primavera);
+        gc.insertarCategoria(verano);
+        gc.insertarCategoria(invierno);
+        gc.insertarCategoria(otono);
+        gc.insertarCategoria(primavera);
     }
 
 }

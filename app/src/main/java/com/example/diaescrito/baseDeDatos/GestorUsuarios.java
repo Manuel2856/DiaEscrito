@@ -79,59 +79,6 @@ public class GestorUsuarios {
         return usuario;
     }
 
-    public Usuario obtenerUsuarioPorId(int idUsuario){
-        initializeDatabase();
-        Usuario usuario = null;
-        SQLiteStatement statement = null;
-        Cursor cursor = null;
-        try {
-            if (db != null) {
-                cursor = db.rawQuery("SELECT * FROM Usuarios WHERE IdUsuario = ?",new String[]{String.valueOf(usuario.getIdUsuario())});
-                if (cursor.moveToFirst()) {
-                    String nombre = cursor.getString(cursor.getColumnIndexOrThrow("Nombre"));
-                    String contrasenia = cursor.getString(cursor.getColumnIndexOrThrow("Contrasenia"));
-                    String email = cursor.getString(cursor.getColumnIndexOrThrow("Email"));
-                    // Aquí obtén el resto de los atributos del usuario según tu esquema de base de datos
-                    usuario = new Usuario(nombre, email, contrasenia, idUsuario);
-                }
-            } else {
-                Log.e("GestorBaseDeDatos", "La base de datos es nula. Asegúrate de inicializarla correctamente.");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (cursor != null) {
-                cursor.close();
-            }
-            if (statement != null) {
-                statement.close();
-            }
-        }
-        return usuario;
-    }
-
-    public List<Usuario> obtenerUsuarios() {
-        List<Usuario> listaPerfiles = new ArrayList<>();
-        String consulta = "SELECT * FROM Usuarios";
-        Cursor cursor = null;
-        try {
-            cursor = db.rawQuery(consulta, null);
-        } catch (Exception e) {
-        }
-
-        if (cursor.getCount() == 0){
-            return listaPerfiles;
-        }
-        while (cursor.moveToNext()) {
-            Integer id = Integer.parseInt(cursor.getString(cursor.getColumnIndexOrThrow("IdPerfil")));
-            String nombre = cursor.getString(cursor.getColumnIndexOrThrow("Nombre"));
-            String contrasenia = cursor.getString(cursor.getColumnIndexOrThrow("Contrasenia"));
-            String email = cursor.getString(cursor.getColumnIndexOrThrow("Email"));
-            Usuario perfil = new Usuario(nombre,email, contrasenia, id);
-            listaPerfiles.add(perfil);
-        }
-        return listaPerfiles;
-    }
     public void borrarUsuario(Usuario usuario){
         int id = usuario.getIdUsuario();
         SQLiteStatement statement = null;

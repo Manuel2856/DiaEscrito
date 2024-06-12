@@ -27,7 +27,7 @@ public class GestorCategorias {
                         ");";
         db.execSQL(crearCategorias);
     }
-    public List<Categoria> getAllCategories() {
+    public List<Categoria> obtenerCategorias() {
         List<Categoria> categories = new ArrayList<>();
         initializeDatabase();
         Cursor cursor = db.rawQuery("SELECT * FROM Categorias", null);
@@ -44,22 +44,22 @@ public class GestorCategorias {
         cursor.close();
         return categories;
     }
-    public void addCategory(Categoria categoria) {
-        if (!categoryExists(categoria.getNombre())) {
+    public void insertarCategoria(Categoria categoria) {
+        if (!comprobarCategoria(categoria.getNombre())) {
             ContentValues values = new ContentValues();
             values.put("Nombre", categoria.getNombre());
             db.insert("Categorias", null, values);
         }
     }
-    private boolean categoryExists(String categoryName) {
-        Cursor cursor = db.rawQuery("SELECT 1 FROM Categorias WHERE Nombre = ?", new String[]{categoryName});
+    private boolean comprobarCategoria(String nombreCategoria) {
+        Cursor cursor = db.rawQuery("SELECT 1 FROM Categorias WHERE Nombre = ?", new String[]{nombreCategoria});
         boolean exists = cursor.moveToFirst();
         cursor.close();
         return exists;
     }
-    public Categoria getCategoryByName(String name){
+    public Categoria obtenerCategoriaPorNombre(String nombreCategoria){
         initializeDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM Categorias WHERE Nombre = ?", new String[]{name});
+        Cursor cursor = db.rawQuery("SELECT * FROM Categorias WHERE Nombre = ?", new String[]{nombreCategoria});
         Categoria categoria = new Categoria();
         if (cursor.moveToFirst()) {
             int id = cursor.getInt(cursor.getColumnIndexOrThrow("IdCategoria"));

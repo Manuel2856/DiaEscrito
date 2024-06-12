@@ -36,7 +36,6 @@ import com.example.diaescrito.baseDeDatos.GestorEntradas;
 import com.example.diaescrito.databinding.EditarDiaBinding;
 import com.example.diaescrito.entidades.Categoria;
 import com.example.diaescrito.entidades.Entrada;
-import com.example.diaescrito.entidades.Usuario;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -48,8 +47,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 
 public class EditarDia extends AppCompatActivity {
@@ -108,7 +105,7 @@ public class EditarDia extends AppCompatActivity {
             Entrada entradaAGuardar = new Entrada();
             String fechaString = intentEditarDia.getStringExtra("date");
             String nombreCategoria = (String) spinnerCategorias.getSelectedItem();
-            Categoria categoria = gc.getCategoryByName(nombreCategoria);
+            Categoria categoria = gc.obtenerCategoriaPorNombre(nombreCategoria);
             if(fechaString==null){
                 fechaString = entradaEditar.getFechaFormateada();
             }
@@ -260,7 +257,7 @@ public class EditarDia extends AppCompatActivity {
         }
     }
     private void loadCategoriesIntoSpinner() {
-        List<Categoria> categories = gc.getAllCategories();
+        List<Categoria> categories = gc.obtenerCategorias();
         List<String> categoryNames = new ArrayList<>();
         for (Categoria categoria : categories) {
             categoryNames.add(categoria.getNombre());
