@@ -2,8 +2,6 @@ package com.example.diaescrito.iniciarSesion;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -12,12 +10,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
-import androidx.biometric.BiometricManager;
 import androidx.biometric.BiometricPrompt;
 import androidx.core.content.ContextCompat;
 
 import com.example.diaescrito.MainActivity;
-import com.example.diaescrito.R;
 import com.example.diaescrito.baseDeDatos.GestorUsuarios;
 import com.example.diaescrito.databinding.ActivityIniciarSesionBinding;
 import com.example.diaescrito.entidades.Usuario;
@@ -88,6 +84,8 @@ public class IniciarSesion extends AppCompatActivity {
                 .setView(emailInput)
                 .setPositiveButton("OK", (dialog, which) -> {
                     emailUsuarioS = emailInput.getText().toString();
+                    Usuario usuario = gu.obtenerUsuarioPorEmail(emailUsuarioS);
+                    MainActivity.setUsuarioApp(usuario);
                     biometricPrompt.authenticate(promptInfo);
                 })
                 .setNegativeButton("Cancelar", null)
