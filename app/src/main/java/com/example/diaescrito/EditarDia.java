@@ -1,9 +1,8 @@
 package com.example.diaescrito;
 
-import static android.app.PendingIntent.getActivity;
-
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Intent;
@@ -14,8 +13,12 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.text.InputType;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.Spinner;
@@ -27,8 +30,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
 import com.example.diaescrito.baseDeDatos.GestorCategorias;
@@ -54,7 +55,6 @@ public class EditarDia extends AppCompatActivity {
     private ImageView btnVolverAtras;
     private Button btnGuardar;
     private Spinner spinnerCategorias;
-    private int contadorTituloEntrada=0, contadorContenidoEntrada=0;
     private GestorEntradas ge;
     private static final int PICK_IMAGE = 1;
     private ImageView imagenUsuario;
@@ -82,7 +82,7 @@ public class EditarDia extends AppCompatActivity {
         ge = new GestorEntradas(this);
         imagenUsuario = binding.imgAddImage;
         spinnerCategorias = binding.spinCategorias;
-        loadCategoriesIntoSpinner();
+        insertarCategoriasAlSpinner();
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
         Entrada entradaEditar = MainActivity.getEntradaEditar();
@@ -90,7 +90,7 @@ public class EditarDia extends AppCompatActivity {
             binding.etxtTituloEntrada.setText(entradaEditar.getTitulo());
             binding.etxtContenidoEntrada.setText(entradaEditar.getContenido());
             String categoria = entradaEditar.getCategoria().getNombre();
-            setSpinnerToCategory(categoria);
+            ponerCategoriaAlSpinner(categoria);
             byte[] imagenBytes = entradaEditar.getImagen();
 
             if (imagenBytes != null) {
@@ -99,6 +99,7 @@ public class EditarDia extends AppCompatActivity {
             }
         }
         btnVolverAtras.setOnClickListener(e->{
+            MainActivity.setEntradaEditar(null);
             volverAInicio();
         });
         btnGuardar.setOnClickListener(e->{
@@ -115,7 +116,7 @@ public class EditarDia extends AppCompatActivity {
             } catch (ParseException a) {
                 a.printStackTrace();
             }
-            byte[] imagenByteArray = null;
+            byte[] imagenByteArray;
             if (photoUri != null) {
                 try {
                     InputStream inputStream = getContentResolver().openInputStream(photoUri);
@@ -151,9 +152,7 @@ public class EditarDia extends AppCompatActivity {
                 binding.etxtContenidoEntrada.setText("");
             }
         });
-        binding.imgAddImage.setOnClickListener(e->{
-            mostrarMenuFoto();
-        });
+        binding.imgAddImage.setOnClickListener(e-> mostrarMenuFoto());
 
         //Registro las actividades de la camara y la galeria
         galleryLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
@@ -177,8 +176,44 @@ public class EditarDia extends AppCompatActivity {
                 Toast.makeText(this, "Se necesita el permiso de la cámara para poder hacer fotos.", Toast.LENGTH_SHORT).show();
             }
         });
+        spinnerCategorias.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String selectedItem = (String) parent.getItemAtPosition(position);
+                if (selectedItem.equals("Nueva categoría")) {
+                    showAddCategoryDialog();
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
     }
 
+    private void showAddCategoryDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Nueva categoría");
+
+        final EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        builder.setView(input);
+
+        builder.setPositiveButton("Crear", (dialog, which) -> {
+            String categoryName = input.getText().toString().trim();
+            if (!categoryName.isEmpty()) {
+                Categoria nuevaCategoria = new Categoria();
+                nuevaCategoria.setNombre(categoryName);
+                gc.insertarCategoria(nuevaCategoria);
+                spinnerCategorias.setAdapter(null);
+                insertarCategoriasAlSpinner();
+                ponerCategoriaAlSpinner(nuevaCategoria.getNombre());
+            }
+        });
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+
+        builder.show();
+    }
 
     private void mostrarMenuFoto() {
         PopupMenu popupMenu = new PopupMenu(this, imagenUsuario);
@@ -199,6 +234,7 @@ public class EditarDia extends AppCompatActivity {
 
         popupMenu.show();
     }
+
     private Uri crearUriImagen() {
         ContentResolver contentResolver = getContentResolver();
         ContentValues contentValues = new ContentValues();
@@ -207,16 +243,6 @@ public class EditarDia extends AppCompatActivity {
 
         return contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
     }
-    private void takePhotoWithPermissions() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED
-                || ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                    PERMISSIONS_REQUEST_CAMERA);
-        } else {
-            takePhoto();
-        }
-    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -224,7 +250,6 @@ public class EditarDia extends AppCompatActivity {
         if (requestCode == PERMISSIONS_REQUEST_CAMERA) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 takePhoto();
-            } else {
             }
         }
     }
@@ -256,23 +281,24 @@ public class EditarDia extends AppCompatActivity {
             imagenUsuario.setImageURI(selectedImage);
         }
     }
-    private void loadCategoriesIntoSpinner() {
+    private void insertarCategoriasAlSpinner() {
         List<Categoria> categories = gc.obtenerCategorias();
         List<String> categoryNames = new ArrayList<>();
         for (Categoria categoria : categories) {
             categoryNames.add(categoria.getNombre());
         }
+        categoryNames.add("Nueva categoría");
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, categoryNames);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerCategorias.setAdapter(adapter);
     }
 
+
     public void volverAInicio(){
         finish();
     }
-    private void setSpinnerToCategory(String nombreCategoria) {
+    private void ponerCategoriaAlSpinner(String nombreCategoria) {
         ArrayAdapter<String> adapter = (ArrayAdapter<String>) spinnerCategorias.getAdapter();
-        int cuenta = adapter.getCount();
         for (int i = 0; i < adapter.getCount(); i++) {
             String categoria = adapter.getItem(i);
             if (nombreCategoria.equalsIgnoreCase(categoria)) {

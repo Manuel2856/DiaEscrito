@@ -78,6 +78,31 @@ public class GestorUsuarios {
         }
         return usuario;
     }
+    public List<Usuario>obtenerUsuarios(){
+        initializeDatabase();
+        List<Usuario> listaUsuarios = new ArrayList<>();
+        String consulta = "SELECT * FROM Usuarios";
+        try (Cursor cursor = db.rawQuery(consulta, null)) {
+            while (cursor.moveToNext()) {
+                Usuario usuario = new Usuario();
+                int idUsuario = cursor.getInt(cursor.getColumnIndexOrThrow("IdUsuario"));
+                String nombre = cursor.getString(cursor.getColumnIndexOrThrow("Nombre"));
+                String email = cursor.getString(cursor.getColumnIndexOrThrow("Email"));
+                String password = cursor.getString(cursor.getColumnIndexOrThrow("Contrasena"));
+
+                usuario.setIdUsuario(idUsuario);
+                usuario.setNombre(nombre);
+                usuario.setEmail(email);
+                usuario.setContrasena(password);
+
+                listaUsuarios.add(usuario);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return listaUsuarios;
+    }
 
     public void borrarUsuario(Usuario usuario){
         int id = usuario.getIdUsuario();

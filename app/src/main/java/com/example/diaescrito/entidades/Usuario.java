@@ -15,6 +15,7 @@ public class Usuario {
         this.email = email;
         this.contrasena = contrasena;
     }
+    public Usuario(){}
 
     public String getNombre() {
         return nombre;
@@ -47,4 +48,6 @@ public class Usuario {
     public void setIdUsuario(int idUsuario) {
         this.idUsuario = idUsuario;
     }
+
+
 }
